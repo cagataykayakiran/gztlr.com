@@ -29,6 +29,6 @@ jobs:
         SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
     - name: Run Java Application
       run: |
-        sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no root@172.232.209.75 "java -jar /home/gztlr/gztlr.jar"
+        sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no root@172.232.209.75 "nohup java -jar /home/gztlr/gztlr.jar > /dev/null 2>&1 &"
       env:
         SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
