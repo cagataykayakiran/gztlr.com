@@ -1,4 +1,4 @@
-package com.gztlr.dto;
+package com.gztlr.dto.user.request;
 
 import lombok.Data;
 

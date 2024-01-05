@@ -1,7 +1,6 @@
-package com.gztlr.config;
+package com.gztlr.security.config;
 
-import com.gztlr.service.JwtService;
-import com.gztlr.service.UserService;
+import com.gztlr.security.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         token = header.substring(7);
         username = jwtService.extractUsername(token);
-
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             if (jwtService.validateToken(token, userDetails)) {
