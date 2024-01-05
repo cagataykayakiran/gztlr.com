@@ -30,10 +30,7 @@ public class ImageController {
         }
     }*/
 
-    @GetMapping("/test")
-    public String deneme() {
-        return "test";
-    }
+
 
     @PostMapping
     public ResponseEntity<?> uploadImage(@RequestParam("images") MultipartFile file,

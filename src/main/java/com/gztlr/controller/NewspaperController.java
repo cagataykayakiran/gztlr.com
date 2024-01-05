@@ -19,6 +19,11 @@ public class NewspaperController {
         return newspaperService.getAllNewspaper();
     }
 
+    @GetMapping("/test")
+    public String deneme() {
+        return "test";
+    }
+
     @GetMapping("{id}")
     public Newspaper getByIdNewspaper(@PathVariable Long id) {
         return newspaperService.getByIdNewspaper(id);
