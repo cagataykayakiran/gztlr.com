@@ -1,24 +1,27 @@
-name: Deploy to Production Server
+name: Deploy to Ubuntu Server
 
 on:
   push:
     branches:
-      - main
+      - main  # Veya kendi ana dalınıza göre ayarlayın
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
 
-      - name: SSH and Deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER }}
-          username: ${{ secrets.SSH_USER }}
-          port: ${{ secrets.PORT }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd ../data/web/public_html
-            git pull
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '17'
+
+    - name: Build and Deploy
+      run: |
+        ./gradlew build
+        scp -r build/* root@172.232.209.75:/home/gztlr/gztlr.jar
+      env:
+        SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
