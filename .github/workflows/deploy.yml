@@ -27,6 +27,12 @@ jobs:
         rsync -avz -e "sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no" target/* root@172.232.209.75:/home/gztlr
       env:
         SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
+
+    - name: Kill Java Application
+      run: |
+        sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no root@172.232.209.75 "pkill -f 'java -jar /home/gztlr/gztlr.jar'"
+      env:
+        SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
     - name: Run Java Application
       run: |
         sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no root@172.232.209.75 "nohup java -jar /home/gztlr/gztlr.jar > /dev/null 2>&1 &"
