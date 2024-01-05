@@ -18,10 +18,12 @@ jobs:
       with:
         distribution: 'adopt'
         java-version: '17'
-
-    - name: Build and Deploy
+        
+    - name: Build with Maven
+      run: mvn clean install
+      
+    - name: Copy artifacts to server
       run: |
-        ./gradlew build
-        scp -r build/* root@172.232.209.75:/home/gztlr/gztlr.jar
+        run: scp -r target/* root@172.232.209.75:/home/gztlr/gztlr.jar
       env:
         SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
