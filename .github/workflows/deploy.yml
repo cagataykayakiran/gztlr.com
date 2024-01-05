@@ -1,14 +1,14 @@
-name: Deploy to Ubuntu Server
+name: Java CI/CD
 
 on:
   push:
     branches:
-      - main  # Veya kendi ana dalınıza göre ayarlayın
+      - main 
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -18,13 +18,12 @@ jobs:
       with:
         distribution: 'adopt'
         java-version: '17'
-        
+
     - name: Build with Maven
       run: mvn clean install
-      
-    - name: Copy artifacts to server
+
+    - name: Deploy to Ubuntu Server
       run: |
-        ./gradlew build
-        rsync -avz -e "sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no" build/* root@172.232.209.75:/home/gztlr/gztlr.jar
+        rsync -avz -e "sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no" target/* root@172.232.209.75:/home/gztlr
       env:
         SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
