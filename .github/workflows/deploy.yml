@@ -1,24 +1,34 @@
-name: Deploy to Production Server
+name: Java CI/CD
 
 on:
   push:
     branches:
-      - main
+      - main 
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: SSH and Deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER }}
-          username: ${{ secrets.SSH_USER }}
-          port: ${{ secrets.PORT }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd ../data/web/public_html
-            git pull
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '17'
+
+    - name: Build with Maven
+      run: mvn clean install
+
+    - name: Deploy to Ubuntu Server
+      run: |
+        rsync -avz -e "sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no" target/* root@172.232.209.75:/home/gztlr
+      env:
+        SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
+    - name: Run Java Application
+      run: |
+        sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no root@172.232.209.75 "nohup java -jar /home/gztlr/gztlr.jar > /dev/null 2>&1 &"
+      env:
+        SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
