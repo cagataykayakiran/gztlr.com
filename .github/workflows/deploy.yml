@@ -23,6 +23,8 @@ jobs:
       run: mvn clean install
       
     - name: Copy artifacts to server
-      run:  scp -o StrictHostKeyChecking=no -r target/* root@172.232.209.75:/home/gztlr/gztlr.jar
+      run: |
+        ./gradlew build
+        rsync -avz -e "sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no" build/* root@172.232.209.75:/home/gztlr/gztlr.jar
       env:
         SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
