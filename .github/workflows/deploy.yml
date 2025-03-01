@@ -1,45 +1,52 @@
-name: Java CI/CD
-
+name: Maven TERIA
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: Set up JDK
-      uses: actions/setup-java@v2
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
       with:
         distribution: 'adopt'
         java-version: '17'
 
     - name: Build with Maven
-      run: mvn clean install
+      run: mvn clean package -DskipTests
 
-    - name: Deploy to Ubuntu Server
+    - name: Rename JAR file
       run: |
-        rsync -avz -e "sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no" target/* ${{ secrets.SERVER_SSH_USERNAME }}@${{ secrets.SERVER_SSH_IP }}:/home/gztlr
+        JAR_NAME=$(ls target/*.jar | head -n 1)
+        echo "Detected JAR: $JAR_NAME"
+        mv $JAR_NAME target/app.jar
+
+    - name: Kill Existing Java Application (if running)
+      run: |
+        echo "Checking if the application is already running on the server..."
+        sshpass -p "${{ secrets.SERVER_SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_SSH_USERNAME }}@${{ secrets.SERVER_SSH_IP }} "pkill -f 'java -jar /home/teria/app.jar' || echo 'No running application found.'"
       env:
         SERVER_SSH_IP: ${{ secrets.SERVER_SSH_IP }}
         SERVER_SSH_USERNAME: ${{ secrets.SERVER_SSH_USERNAME }}
         SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
 
-    - name: Kill Java Application
+    - name: Deploy JAR to Server
       run: |
-        sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_SSH_USERNAME }}@${{ secrets.SERVER_SSH_IP }} "pkill -f 'java -jar /home/gztlr/gztlr.jar'"
+        sudo apt-get install -y sshpass
+        sshpass -p "${{ secrets.SERVER_SSH_PASSWORD }}" rsync -avz --progress -e "ssh -o StrictHostKeyChecking=no" target/app.jar ${{ secrets.SERVER_SSH_USERNAME }}@${{ secrets.SERVER_SSH_IP }}:/home/teria/app.jar
       env:
         SERVER_SSH_IP: ${{ secrets.SERVER_SSH_IP }}
         SERVER_SSH_USERNAME: ${{ secrets.SERVER_SSH_USERNAME }}
         SERVER_SSH_PASSWORD: ${{ secrets.SERVER_SSH_PASSWORD }}
-    - name: Run Java Application
+
+    - name: Start New Application
       run: |
-        sshpass -p ${{ secrets.SERVER_SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_SSH_USERNAME }}@${{ secrets.SERVER_SSH_IP }} "nohup java -jar /home/gztlr/gztlr.jar > /dev/null 2>&1 &"
+        sshpass -p "${{ secrets.SERVER_SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_SSH_USERNAME }}@${{ secrets.SERVER_SSH_IP }} "nohup java -jar /home/teria/app.jar > /home/teria/app.log 2>&1 &"
       env:
         SERVER_SSH_IP: ${{ secrets.SERVER_SSH_IP }}
         SERVER_SSH_USERNAME: ${{ secrets.SERVER_SSH_USERNAME }}
