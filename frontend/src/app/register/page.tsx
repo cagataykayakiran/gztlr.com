@@ -1,0 +1,167 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { UserPlus, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { api } from '@/lib/api';
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const [form, setForm] = useState({
+    name: '',
+    lastname: '',
+    username: '',
+    password: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  function updateField(field: string, value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await api.auth.register(form);
+      localStorage.setItem('access_token', res.access_token);
+      localStorage.setItem('refresh_token', res.refresh_token);
+      router.push('/');
+    } catch {
+      setError('Kayit sirasinda bir hata olustu. Kullanici adi alinmis olabilir.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-[calc(100vh-57px)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm">
+        {/* Back link */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-[13px] text-text-tertiary hover:text-text-secondary mb-8 transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Ana Sayfaya Don
+        </Link>
+
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="font-serif text-3xl text-text-primary mb-2">Kayit Ol</h1>
+          <p className="text-sm text-text-secondary">
+            Hesap olusturun ve kisisellestirilmis haber akisiniza erismeye baslayin.
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="px-3 py-2 text-[13px] text-error bg-error/10 border border-error/20 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="name" className="block text-[12px] font-medium text-text-secondary mb-1.5">
+                Ad
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={form.name}
+                onChange={(e) => updateField('name', e.target.value)}
+                required
+                className="w-full h-10 px-3 text-sm bg-bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:border-brand focus:ring-0 focus:outline-none transition-colors"
+                placeholder="Ad"
+              />
+            </div>
+            <div>
+              <label htmlFor="lastname" className="block text-[12px] font-medium text-text-secondary mb-1.5">
+                Soyad
+              </label>
+              <input
+                id="lastname"
+                type="text"
+                value={form.lastname}
+                onChange={(e) => updateField('lastname', e.target.value)}
+                required
+                className="w-full h-10 px-3 text-sm bg-bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:border-brand focus:ring-0 focus:outline-none transition-colors"
+                placeholder="Soyad"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="username" className="block text-[12px] font-medium text-text-secondary mb-1.5">
+              Kullanici Adi
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={form.username}
+              onChange={(e) => updateField('username', e.target.value)}
+              required
+              className="w-full h-10 px-3 text-sm bg-bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:border-brand focus:ring-0 focus:outline-none transition-colors"
+              placeholder="kullaniciadi"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-[12px] font-medium text-text-secondary mb-1.5">
+              Sifre
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => updateField('password', e.target.value)}
+                required
+                minLength={6}
+                className="w-full h-10 px-3 pr-10 text-sm bg-bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:border-brand focus:ring-0 focus:outline-none transition-colors"
+                placeholder="En az 6 karakter"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-tertiary"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full h-10 flex items-center justify-center gap-2 text-sm font-medium text-bg-primary bg-brand hover:bg-brand-hover disabled:opacity-50 rounded-lg transition-colors"
+          >
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-bg-primary/30 border-t-bg-primary rounded-full animate-spin" />
+            ) : (
+              <>
+                <UserPlus className="w-4 h-4" />
+                Kayit Ol
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Login link */}
+        <p className="mt-6 text-center text-[13px] text-text-tertiary">
+          Zaten bir hesabiniz var mi?{' '}
+          <Link href="/login" className="text-brand hover:text-brand-hover font-medium transition-colors">
+            Giris Yapin
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
